@@ -1,51 +1,54 @@
-use warnings;
+use Modern::Perl;
 use Getopt::Std;
 
+my %opts = ();
 getopt('xytGgwsf',\%opts);
 
 # pcm file = $opts{f}
 
 # samples per pixel x
-$xscale = $opts{x} // 1200;
+my $xscale = $opts{x} // 1200;
 
 # quant levels per pixel y
-$yscale = $opts{y} // 100;
+my $yscale = $opts{y} // 100;
 
 # oversampling target rate
-$targetrate = $opts{t} // 1_099_961;
+my $targetrate = $opts{t} // 1_099_961;
 
 # wave preamplification, dB
-$ygain = $opts{G} // 0;
+my $ygain = $opts{G} // 0;
 
 # brightness added by one sample
-$gain   = $opts{g} // 6;
+my $gain   = $opts{g} // 6;
 
 # img width
-$w      = $opts{w} // 1000;
+my $w      = $opts{w} // 1000;
 
 # skip amount of seconds
-$skip_sec = $opts{s} // 0.05;
+my $skip_sec = $opts{s} // 0.05;
 
 ############
 
 # turquoise tint
+my @gradient;
 for (0..127)   { @{$gradient[$_]} = ($_/2, $_*1.5 ,$_*1.5); }
 for (128..255) { @{$gradient[$_]} = (64+ ($_-128)*1.5, 192+($_-128)/2, 192+($_-128)/2); }
 
 open(S,"sox \"".$opts{f}."\" -r $targetrate -b 16 -c 2 -t .raw -e signed - trim $skip_sec gain $ygain|");
 
-$n=0;
+my $n=0;
+my @pix;
 while(not eof(S)) {
   read(S,$a,2);
-  $a = -unpack("s",$a);
+  my $a = -unpack("s",$a);
 
   # pixel position of this sample
-  $x = $n/$xscale;
-  $y = ($a+32768)/$yscale;
+  my $x = $n/$xscale;
+  my $y = ($a+32768)/$yscale;
 
   # bilinear interpolation
-  $xdec = $x-int($x);
-  $ydec = $y-int($y);
+  my $xdec = $x-int($x);
+  my $ydec = $y-int($y);
   $pix[$x][$y]     += (1-$xdec) * (1-$ydec);
   $pix[$x+1][$y]   += ($xdec)   * (1-$ydec);
   $pix[$x][$y+1]   += (1-$xdec) * ($ydec);
@@ -59,12 +62,12 @@ while(not eof(S)) {
 close(S);
 
 open(U,"|convert -depth 8 -size ".$w."x".int(65536/$yscale)." rgb:- osc.png");
-for $y (0..65536/$yscale-1) {
-  for $x (0..$w-1) {
-    $p = ($pix[$x][$y] // 0) * $gain;
+for my $y (0..65536/$yscale-1) {
+  for my $x (0..$w-1) {
+    my $p = ($pix[$x][$y] // 0) * $gain;
     $p = 255 if ($p > 255);
     if ($y == round(65536/$yscale/2)) {
-      @a = @{$gradient[$p]};
+      my @a = @{$gradient[$p]};
       for (@a) { $_ += 64; $_ = 255 if ($_ > 255); }
       print U pack("CCC",@a);
     } else {
