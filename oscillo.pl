@@ -1,5 +1,5 @@
-use strict; # the next line actually does this, but this line needs to be
-# there for Github and other services to indentify this as Perl.
+#!/usr/bin/perl
+
 use Modern::Perl;
 use Getopt::Std;
 
