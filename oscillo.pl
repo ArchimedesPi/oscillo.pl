@@ -62,7 +62,7 @@ while(not eof(S)) {
 
 close(S);
 
-open(image_file,"|convert -depth 8 -size ".$w."x".int(65536/$yscale)." rgb:- ".$output);
+open(image_file,"|convert -depth 8 -size ".$w."x".int(65536/$yscale)." rgb:- ".$opts{o});
 for my $y (0..65536/$yscale-1) {
   for my $x (0..$w-1) {
     my $p = ($pix[$x][$y] // 0) * $gain;
