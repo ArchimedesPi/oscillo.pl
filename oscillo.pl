@@ -62,7 +62,7 @@ while(not eof(S)) {
 
 close(S);
 
-open(U,"|convert -depth 8 -size ".$w."x".int(65536/$yscale)." rgb:- ".$output);
+open(image_file,"|convert -depth 8 -size ".$w."x".int(65536/$yscale)." rgb:- ".$output);
 for my $y (0..65536/$yscale-1) {
   for my $x (0..$w-1) {
     my $p = ($pix[$x][$y] // 0) * $gain;
@@ -70,13 +70,13 @@ for my $y (0..65536/$yscale-1) {
     if ($y == round(65536/$yscale/2)) {
       my @a = @{$gradient[$p]};
       for (@a) { $_ += 64; $_ = 255 if ($_ > 255); }
-      print U pack("CCC",@a);
+      print image_file pack("CCC",@a);
     } else {
-      print U pack("CCC",@{$gradient[$p]});
+      print image_file pack("CCC",@{$gradient[$p]});
     }
   }
 }
-close(U);
+close(image_file);
 
 
 sub round { int($_[0]+.5); }
