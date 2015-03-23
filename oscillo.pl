@@ -2,9 +2,10 @@ use Modern::Perl;
 use Getopt::Std;
 
 my %opts = ();
-getopt('xytGgwsf',\%opts);
+getopt('xytGgwsfo',\%opts);
 
 # pcm file = $opts{f}
+# output file = $opts{o}
 
 # samples per pixel x
 my $xscale = $opts{x} // 1200;
@@ -61,7 +62,7 @@ while(not eof(S)) {
 
 close(S);
 
-open(U,"|convert -depth 8 -size ".$w."x".int(65536/$yscale)." rgb:- osc.png");
+open(U,"|convert -depth 8 -size ".$w."x".int(65536/$yscale)." rgb:- ".$output);
 for my $y (0..65536/$yscale-1) {
   for my $x (0..$w-1) {
     my $p = ($pix[$x][$y] // 0) * $gain;
